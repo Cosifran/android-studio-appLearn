@@ -2,47 +2,49 @@ package com.apxana.learnandroid.firstapp
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
-import android.widget.EditText
-import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Modifier
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.apxana.learnandroid.R
-import com.apxana.learnandroid.variables
+import com.apxana.learnandroid.service.NotificationForwarderService
+import com.apxana.learnandroid.ui.screens.NotificationListenerScreen
 
 class FirstAppActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_first_app)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+        
+        // Iniciar el Foreground Service para mantener la app funcionando
+        startNotificationService()
+        
+        // Usar Compose para la UI
+        setContent {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.background
+            ) {
+                NotificationListenerScreen()
+            }
+        }
+        
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
-        val btnLogin = findViewById<Button>(R.id.btnPress)
-        val inputEmail = findViewById<EditText>(R.id.inputEmail)
-        val inputPassword = findViewById<EditText>(R.id.inputPassword)
-
-        variables()
-
-        btnLogin.setOnClickListener {
-            val textEmail = inputEmail.text.toString()
-            val textPassword = inputPassword.text.toString()
-
-            if (textEmail.isBlank() || textPassword.isBlank()) {
-                Toast.makeText(this, "Ambos campos son obligatorios", Toast.LENGTH_SHORT).show()
-            }else{
-                Toast.makeText(this, "Validación correcta", Toast.LENGTH_SHORT).show()
-                val intent = Intent(this, HomeActivity::class.java)
-                startActivity(intent)
-            }
-
+    }
+    
+    private fun startNotificationService() {
+        try {
+            val intent = Intent(this, NotificationForwarderService::class.java)
+            startForegroundService(intent)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-
-
     }
 }
